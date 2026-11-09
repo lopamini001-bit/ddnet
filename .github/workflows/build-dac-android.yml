@@ -1,0 +1,69 @@
+name: Build DAC Android APK
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build-android:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v5
+        with:
+          submodules: recursive
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Set up Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: '1.92.0'
+          targets: aarch64-linux-android
+
+      - name: Set up CMake
+        uses: lukka/get-cmake@latest
+        with:
+          cmakeVersion: '3.22.1'
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y autoconf automake libtool m4 ninja-build
+
+      - name: Install Android SDK
+        run: |
+          scripts/android/download_android_sdk.sh /home/runner
+          export ANDROID_HOME="/home/runner/Android/Sdk"
+          yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "platforms;android-36"
+          echo "ANDROID_HOME=$ANDROID_HOME" >> "$GITHUB_ENV"
+
+      - name: Install Rust Android tools
+        run: cargo install cargo-ndk
+
+      - name: Build Android libraries
+        run: |
+          export ANDROID_HOME="/home/runner/Android/Sdk"
+          unset ANDROID_SDK_ROOT
+          export M4=/usr/bin/m4
+          scripts/compile_libs/gen_libs.sh build-android-libs android
+          find ddnet-libs -type d -name android -exec rm -r {} + -prune
+          rm -rf ddnet-libs/sdl/java
+          cp -r build-android-libs/ddnet-libs/. ddnet-libs/
+
+      - name: Build DAC APK
+        run: |
+          scripts/android/cmake_android.sh arm64 DDNet org.ddnet.client Debug build-android-debug
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v6
+        with:
+          name: DAC-Android-debug
+          path: build-android-debug/DDNet.apk
+          if-no-files-found: error
