@@ -542,6 +542,17 @@ void CMenus::RenderMenubar(CUIRect Box, IClient::EClientState ClientState)
 		const float BrowserButtonWidth = 75.0f;
 		Box.VSplitLeft(10.0f, nullptr, &Box);
 		Box.VSplitLeft(BrowserButtonWidth, &Button, &Box);
+		TextRender()->SetFontPreset(EFontPreset::DEFAULT_FONT);
+		TextRender()->SetRenderFlags(0);
+		static CButtonContainer s_DacButton;
+		if(DoButton_MenuTab(&s_DacButton, "DAC", ActivePage == PAGE_DAC, &Button, IGraphics::CORNER_T))
+		{
+			NewPage = PAGE_DAC;
+		}
+		Ui()->DoToolTip(&s_DacButton, &Button, "DDNet Advanced Client");
+		TextRender()->SetFontPreset(EFontPreset::ICON_FONT);
+		TextRender()->SetRenderFlags(ETextRenderFlags::TEXT_RENDER_FLAG_ONLY_ADVANCE_WIDTH | ETextRenderFlags::TEXT_RENDER_FLAG_NO_X_BEARING | ETextRenderFlags::TEXT_RENDER_FLAG_NO_Y_BEARING | ETextRenderFlags::TEXT_RENDER_FLAG_NO_PIXEL_ALIGNMENT | ETextRenderFlags::TEXT_RENDER_FLAG_NO_OVERSIZE);
+		Box.VSplitLeft(BrowserButtonWidth, &Button, &Box);
 		static CButtonContainer s_InternetButton;
 		if(DoButton_MenuTab(&s_InternetButton, FontIcon::EARTH_AMERICAS, ActivePage == PAGE_INTERNET, &Button, IGraphics::CORNER_T, &m_aAnimatorsBigPage[BIG_TAB_INTERNET]))
 		{
@@ -682,6 +693,55 @@ void CMenus::RenderMenubar(CUIRect Box, IClient::EClientState ClientState)
 		else
 			m_GamePage = NewPage;
 	}
+}
+
+void CMenus::RenderDac(CUIRect MainView)
+{
+	static const char *s_apSections[] = {
+		"Статистика",
+		"Функции",
+		"Визуал",
+		"Crazy Visuals",
+	};
+	static const char *s_apCategories[4][3] = {
+		{"Сервер", "Игроки", "Сессия"},
+		{"Player Manager", "Интерфейс", "Оптимизация"},
+		{"HUD", "Фон", "Эффекты"},
+		{"Эффекты", "Эксперименты", "Прочее"},
+	};
+
+	CUIRect Header, SectionBar, CategoryBar, Content;
+	MainView.HSplitTop(42.0f, &Header, &MainView);
+	Header.Margin(8.0f, &Header);
+	Ui()->DoLabel(&Header, "DAC — DDNet Advanced Client", 22.0f, TEXTALIGN_ML);
+
+	MainView.HSplitTop(38.0f, &SectionBar, &MainView);
+	static CButtonContainer s_aSectionButtons[4];
+	for(int i = 0; i < 4; ++i)
+	{
+		CUIRect Tab;
+		const float Width = SectionBar.w / (4 - i);
+		SectionBar.VSplitLeft(Width, &Tab, &SectionBar);
+		if(DoButton_MenuTab(&s_aSectionButtons[i], s_apSections[i], m_DacSection == i, &Tab, IGraphics::CORNER_ALL))
+		{
+			m_DacSection = i;
+			m_DacCategory = 0;
+		}
+	}
+
+	MainView.HSplitTop(38.0f, &CategoryBar, &MainView);
+	static CButtonContainer s_aCategoryButtons[4][3];
+	for(int i = 0; i < 3; ++i)
+	{
+		CUIRect Tab;
+		const float Width = CategoryBar.w / (3 - i);
+		CategoryBar.VSplitLeft(Width, &Tab, &CategoryBar);
+		if(DoButton_MenuTab(&s_aCategoryButtons[m_DacSection][i], s_apCategories[m_DacSection][i], m_DacCategory == i, &Tab, IGraphics::CORNER_ALL))
+			m_DacCategory = i;
+	}
+
+	MainView.Margin(12.0f, &Content);
+	Ui()->DoLabel(&Content, s_apCategories[m_DacSection][m_DacCategory], 20.0f, TEXTALIGN_ML);
 }
 
 void CMenus::RenderLoadingDirect(const char *pCaption, const char *pContent, std::optional<float> Progress)
@@ -1071,6 +1131,10 @@ void CMenus::Render()
 			if(m_MenuPage == PAGE_NEWS)
 			{
 				RenderNews(MainView);
+			}
+			else if(m_MenuPage == PAGE_DAC)
+			{
+				RenderDac(MainView);
 			}
 			else if(m_MenuPage >= PAGE_INTERNET && m_MenuPage <= PAGE_FAVORITE_COMMUNITY_5)
 			{

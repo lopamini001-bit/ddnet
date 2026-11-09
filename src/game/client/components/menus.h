@@ -141,6 +141,8 @@ protected:
 
 	int m_MenuPage;
 	int m_GamePage;
+	int m_DacSection = 0;
+	int m_DacCategory = 0;
 	int m_Popup;
 	bool m_ShowStart;
 	bool m_MenuActive;
@@ -464,6 +466,7 @@ protected:
 #endif
 	void RenderMenubar(CUIRect Box, IClient::EClientState ClientState);
 	void RenderNews(CUIRect MainView);
+	void RenderDac(CUIRect MainView);
 	static void ConchainBackgroundEntities(IConsole::IResult *pResult, void *pUserData, IConsole::FCommandCallback pfnCallback, void *pCallbackUserData);
 	static void ConchainUpdateMusicState(IConsole::IResult *pResult, void *pUserData, IConsole::FCommandCallback pfnCallback, void *pCallbackUserData);
 	void UpdateMusicState();
@@ -700,6 +703,7 @@ public:
 		PAGE_SETTINGS,
 		PAGE_NETWORK,
 		PAGE_GHOST,
+		PAGE_DAC,
 
 		PAGE_LENGTH,
 	};
