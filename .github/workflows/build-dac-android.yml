@@ -1,6 +1,9 @@
 name: Build DAC Android APK
 
 on:
+  push:
+    branches:
+      - dac-development
   workflow_dispatch:
 
 permissions:
@@ -44,8 +47,6 @@ jobs:
           yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "platforms;android-36"
           echo "ANDROID_HOME=$ANDROID_HOME" >> "$GITHUB_ENV"
 echo "ANDROID_SDK_ROOT=$ANDROID_HOME" >> "$GITHUB_ENV"
-      echo "ANDROID_SDK_ROOT=$ANDROID_HOME" >> "$GITHUB_ENV"
-      echo "ANDROID_SDK_ROOT=$ANDROID_HOME" >> "$GITHUB_ENV"
 
       - name: Install Rust Android tools
         run: cargo install cargo-ndk
