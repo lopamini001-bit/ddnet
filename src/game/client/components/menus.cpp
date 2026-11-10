@@ -541,15 +541,7 @@ void CMenus::RenderMenubar(CUIRect Box, IClient::EClientState ClientState)
 
 		const float BrowserButtonWidth = 75.0f;
 		Box.VSplitLeft(10.0f, nullptr, &Box);
-		Box.VSplitLeft(BrowserButtonWidth, &Button, &Box);
-		TextRender()->SetFontPreset(EFontPreset::DEFAULT_FONT);
-		TextRender()->SetRenderFlags(0);
-		static CButtonContainer s_DacButton;
-		if(DoButton_MenuTab(&s_DacButton, "DAC", ActivePage == PAGE_DAC, &Button, IGraphics::CORNER_T))
-		{
-			NewPage = PAGE_DAC;
-		}
-		Ui()->DoToolTip(&s_DacButton, &Button, "DDNet Advanced Client");
+
 		TextRender()->SetFontPreset(EFontPreset::ICON_FONT);
 		TextRender()->SetRenderFlags(ETextRenderFlags::TEXT_RENDER_FLAG_ONLY_ADVANCE_WIDTH | ETextRenderFlags::TEXT_RENDER_FLAG_NO_X_BEARING | ETextRenderFlags::TEXT_RENDER_FLAG_NO_Y_BEARING | ETextRenderFlags::TEXT_RENDER_FLAG_NO_PIXEL_ALIGNMENT | ETextRenderFlags::TEXT_RENDER_FLAG_NO_OVERSIZE);
 		Box.VSplitLeft(BrowserButtonWidth, &Button, &Box);
