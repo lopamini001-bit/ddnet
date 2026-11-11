@@ -689,53 +689,132 @@ void CMenus::RenderMenubar(CUIRect Box, IClient::EClientState ClientState)
 
 void CMenus::RenderDac(CUIRect MainView)
 {
-	static const char *s_apSections[] = {
-		"Статистика",
-		"Функции",
-		"Визуал",
-		"Crazy Visuals",
-	};
-	static const char *s_apCategories[4][3] = {
-		{"Сервер", "Игроки", "Сессия"},
-		{"Player Manager", "Интерфейс", "Оптимизация"},
-		{"HUD", "Фон", "Эффекты"},
-		{"Эффекты", "Эксперименты", "Прочее"},
-	};
+    static const char *s_apSections[] = {
+        "Статистика", "Функции", "Визуал", "Crazy Visuals"
+    };
 
-	CUIRect Header, SectionBar, CategoryBar, Content;
-	MainView.HSplitTop(42.0f, &Header, &MainView);
-	Header.Margin(8.0f, &Header);
-	Ui()->DoLabel(&Header, "DAC — DDNet Advanced Client", 22.0f, TEXTALIGN_ML);
+    static const char *s_apCategories[4][3] = {
+        {"Сервер", "Игроки", "Статистика клиента"},
+        {"Player Manager", "Интерфейс", "Оптимизация"},
+        {"Размытие", "Приближение", "Частицы"},
+        {"Эффекты", "Эксперименты", "Прочее"}
+    };
 
-	MainView.HSplitTop(38.0f, &SectionBar, &MainView);
-	static CButtonContainer s_aSectionButtons[4];
-	for(int i = 0; i < 4; ++i)
-	{
-		CUIRect Tab;
-		const float Width = SectionBar.w / (4 - i);
-		SectionBar.VSplitLeft(Width, &Tab, &SectionBar);
-		if(DoButton_MenuTab(&s_aSectionButtons[i], s_apSections[i], m_DacSection == i, &Tab, IGraphics::CORNER_ALL))
-		{
-			m_DacSection = i;
-			m_DacCategory = 0;
-		}
-	}
+    static CButtonContainer s_aSectionButtons[4];
+    static CButtonContainer s_aCategoryButtons[4][3];
 
-	MainView.HSplitTop(38.0f, &CategoryBar, &MainView);
-	static CButtonContainer s_aCategoryButtons[4][3];
-	for(int i = 0; i < 3; ++i)
-	{
-		CUIRect Tab;
-		const float Width = CategoryBar.w / (3 - i);
-		CategoryBar.VSplitLeft(Width, &Tab, &CategoryBar);
-		if(DoButton_MenuTab(&s_aCategoryButtons[m_DacSection][i], s_apCategories[m_DacSection][i], m_DacCategory == i, &Tab, IGraphics::CORNER_ALL))
-			m_DacCategory = i;
-	}
+    CUIRect Header, SectionBar, Navigation, Workspace;
 
-	MainView.Margin(12.0f, &Content);
-	Ui()->DoLabel(&Content, s_apCategories[m_DacSection][m_DacCategory], 20.0f, TEXTALIGN_ML);
+    MainView.HSplitTop(48.0f, &Header, &MainView);
+    Header.Margin(10.0f, &Header);
+    Ui()->DoLabel(&Header, "DAC  |  DDNet Advanced Client", 22.0f, TEXTALIGN_ML);
+
+    MainView.HSplitTop(42.0f, &SectionBar, &MainView);
+
+    for(int i = 0; i < 4; ++i)
+    {
+        CUIRect Tab;
+        SectionBar.VSplitLeft(SectionBar.w / (4 - i), &Tab, &SectionBar);
+        if(DoButton_MenuTab(&s_aSectionButtons[i], s_apSections[i],
+            m_DacSection == i, &Tab, IGraphics::CORNER_ALL))
+        {
+            m_DacSection = i;
+            m_DacCategory = 0;
+        }
+    }
+
+    MainView.VSplitLeft(205.0f, &Navigation, &Workspace);
+    Navigation.Margin(8.0f, &Navigation);
+    Workspace.Margin(12.0f, &Workspace);
+
+    for(int i = 0; i < 3; ++i)
+    {
+        CUIRect Category;
+        Navigation.HSplitTop(44.0f, &Category, &Navigation);
+        CUIRect Spacer; Navigation.HSplitTop(5.0f, &Spacer, &Navigation);
+
+        if(DoButton_MenuTab(&s_aCategoryButtons[m_DacSection][i],
+            s_apCategories[m_DacSection][i], m_DacCategory == i,
+            &Category, IGraphics::CORNER_ALL))
+        {
+            m_DacCategory = i;
+        }
+    }
+
+    CUIRect Title, Subtitle;
+    Workspace.HSplitTop(38.0f, &Title, &Workspace);
+    Ui()->DoLabel(&Title, s_apCategories[m_DacSection][m_DacCategory],
+        22.0f, TEXTALIGN_ML);
+
+    Workspace.HSplitTop(28.0f, &Subtitle, &Workspace);
+    Ui()->DoLabel(&Subtitle, "Рабочая область DAC",
+        13.0f, TEXTALIGN_ML);
+
+    if(m_DacSection == 2)
+    {
+        CUIRect Row, Label, Control, SliderLabel, Slider;
+
+        if(m_DacCategory == 0)
+        {
+            static const char *s_apBlurNames[4] = {
+                "Полное размытие", "Размытие по сторонам",
+                "Размытие сверху и снизу", "Размытие центра"
+            };
+
+            for(int i = 0; i < 4; i++)
+            {
+                Workspace.HSplitTop(38.0f, &Row, &Workspace);
+                Row.VSplitLeft(210.0f, &Label, &Control);
+                if(DoButton_CheckBox(&m_aDacBlurEnabled[i], s_apBlurNames[i], m_aDacBlurEnabled[i], &Label))
+                    m_aDacBlurEnabled[i] = !m_aDacBlurEnabled[i];
+
+                Control.VSplitLeft(55.0f, &SliderLabel, &Slider);
+                Ui()->DoLabel(&SliderLabel, "Сила", 12.0f, TEXTALIGN_ML);
+                float Current = (m_aDacBlurStrength[i] - 0.05f) / 0.95f;
+                m_aDacBlurStrength[i] = 0.05f + Ui()->DoScrollbarH(&m_aDacBlurStrength[i], &Slider, Current, nullptr) * 0.95f;
+            }
+        }
+        else if(m_DacCategory == 1)
+        {
+            static const char *s_apZoomNames[5] = {
+                "Приближение центра", "Приближение слева",
+                "Приближение справа", "Приближение сверху",
+                "Приближение снизу"
+            };
+
+            for(int i = 0; i < 5; i++)
+            {
+                Workspace.HSplitTop(38.0f, &Row, &Workspace);
+                Row.VSplitLeft(210.0f, &Label, &Control);
+                if(DoButton_CheckBox(&m_aDacZoomEnabled[i], s_apZoomNames[i], m_aDacZoomEnabled[i], &Label))
+                    m_aDacZoomEnabled[i] = !m_aDacZoomEnabled[i];
+
+                Control.VSplitLeft(70.0f, &SliderLabel, &Slider);
+                Ui()->DoLabel(&SliderLabel, "Масштаб", 12.0f, TEXTALIGN_ML);
+                float Current = (m_aDacZoomScale[i] - 1.0f) / 1.5f;
+                m_aDacZoomScale[i] = 1.0f + Ui()->DoScrollbarH(&m_aDacZoomScale[i], &Slider, Current, nullptr) * 1.5f;
+            }
+        }
+        else if(m_DacCategory == 2)
+        {
+            Workspace.HSplitTop(38.0f, &Row, &Workspace);
+            if(DoButton_CheckBox(&m_DacParticlesEnabled, "Включить частицы", m_DacParticlesEnabled, &Row))
+                m_DacParticlesEnabled = !m_DacParticlesEnabled;
+
+            Workspace.HSplitTop(38.0f, &Row, &Workspace);
+            Row.VSplitLeft(210.0f, &Label, &Control);
+            Ui()->DoLabel(&Label, "Количество", 12.0f, TEXTALIGN_ML);
+            float Amount = (m_DacParticleAmount - 10) / 140.0f;
+            m_DacParticleAmount = 10 + (int)(Ui()->DoScrollbarH(&m_DacParticleAmount, &Control, Amount, nullptr) * 140.0f + 0.5f);
+
+            Workspace.HSplitTop(38.0f, &Row, &Workspace);
+            Row.VSplitLeft(210.0f, &Label, &Control);
+            Ui()->DoLabel(&Label, "Размер", 12.0f, TEXTALIGN_ML);
+            float Size = (m_DacParticleSize - 0.5f) / 1.5f;
+            m_DacParticleSize = 0.5f + Ui()->DoScrollbarH(&m_DacParticleSize, &Control, Size, nullptr) * 1.5f;
+        }
+    }
 }
-
 void CMenus::RenderLoadingDirect(const char *pCaption, const char *pContent, std::optional<float> Progress)
 {
 	// TODO: not supported right now due to separate render thread

@@ -143,6 +143,14 @@ protected:
 	int m_GamePage;
 	int m_DacSection = 0;
 	int m_DacCategory = 0;
+int m_DacSettingsPage = 0;
+bool m_aDacBlurEnabled[4] = {true, false, false, false};
+float m_aDacBlurStrength[4] = {0.41f, 0.35f, 0.35f, 0.35f};
+bool m_aDacZoomEnabled[5] = {false, false, false, false, false};
+float m_aDacZoomScale[5] = {1.15f, 1.15f, 1.15f, 1.15f, 1.15f};
+bool m_DacParticlesEnabled = true;
+int m_DacParticleAmount = 40;
+float m_DacParticleSize = 1.0f;
 	int m_Popup;
 	bool m_ShowStart;
 	bool m_MenuActive;
